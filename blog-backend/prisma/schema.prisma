@@ -1,0 +1,130 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  admin
+  editor
+}
+
+enum ArticleStatus {
+  draft
+  published
+}
+
+enum AnalyticsEventType {
+  view
+  share
+  click
+}
+
+enum BannerPosition {
+  sidebar
+  header
+  in_article
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  role         Role      @default(editor)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  articles     Article[]
+
+  @@map("users")
+}
+
+model Article {
+  id            String             @id @default(cuid())
+  title         Json
+  slug          Json
+  content       Json
+  excerpt       Json?
+  featuredImage String?            @map("featured_image")
+  status        ArticleStatus      @default(draft)
+  views         Int                @default(0)
+  shares        Int                @default(0)
+  authorId      String             @map("author_id")
+  publishedAt   DateTime?          @map("published_at")
+  createdAt     DateTime           @default(now()) @map("created_at")
+  updatedAt     DateTime           @updatedAt @map("updated_at")
+  deletedAt     DateTime?          @map("deleted_at")
+
+  author     User              @relation(fields: [authorId], references: [id])
+  categories ArticleCategory[]
+  analytics  Analytics[]
+
+  @@index([status, publishedAt])
+  @@index([authorId])
+  @@map("articles")
+}
+
+model Category {
+  id       String            @id @default(cuid())
+  name     Json
+  articles ArticleCategory[]
+
+  @@map("categories")
+}
+
+model ArticleCategory {
+  articleId  String @map("article_id")
+  categoryId String @map("category_id")
+
+  article  Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([articleId, categoryId])
+  @@map("article_categories")
+}
+
+model Analytics {
+  id        String              @id @default(cuid())
+  articleId String?             @map("article_id")
+  eventType AnalyticsEventType  @map("event_type")
+  platform  String?
+  ipAddress String?             @map("ip_address")
+  userAgent String?             @map("user_agent")
+  referrer  String?
+  url       String?
+  createdAt DateTime            @default(now()) @map("created_at")
+
+  article Article? @relation(fields: [articleId], references: [id], onDelete: SetNull)
+
+  @@index([articleId, eventType])
+  @@index([eventType, createdAt])
+  @@index([articleId, eventType, ipAddress])
+  @@map("analytics")
+}
+
+model Banner {
+  id          String         @id @default(cuid())
+  title       String
+  imageUrl    String         @map("image_url")
+  linkUrl     String         @map("link_url")
+  position    BannerPosition
+  isActive    Boolean        @default(true) @map("is_active")
+  impressions Int            @default(0)
+  clicks      Int            @default(0)
+  createdAt   DateTime       @default(now()) @map("created_at")
+
+  @@index([position, isActive])
+  @@map("banners")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
