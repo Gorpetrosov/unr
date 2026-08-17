@@ -1,9 +1,6 @@
-import dotenv from 'dotenv';
 import { z } from 'zod';
 
-dotenv.config();
-
-const envSchema = z.object({
+export const envSchema = z.object({
   PORT: z.coerce.number().default(4000),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   DATABASE_URL: z.string().min(1),
@@ -21,13 +18,20 @@ const envSchema = z.object({
   RATE_LIMIT_MAX: z.coerce.number().default(200),
 });
 
-const parsed = envSchema.safeParse(process.env);
+export type EnvConfig = z.infer<typeof envSchema>;
 
-if (!parsed.success) {
-  console.error('Invalid environment variables:', parsed.error.flatten().fieldErrors);
-  process.exit(1);
+export function validateEnv(config: Record<string, unknown>): EnvConfig {
+  const parsed = envSchema.safeParse(config);
+  if (!parsed.success) {
+    console.error('Invalid environment variables:', parsed.error.flatten().fieldErrors);
+    throw new Error('Invalid environment variables');
+  }
+  return parsed.data;
 }
 
-export const env = parsed.data;
-
-export const corsOrigins = env.CORS_ORIGIN.split(',').map((o) => o.trim()).filter(Boolean);
+export function corsOrigins(corsOrigin: string): string[] {
+  return corsOrigin
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean);
+}

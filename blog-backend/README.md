@@ -1,38 +1,55 @@
 # Blog Backend
 
-Node.js + Express API with PostgreSQL (Prisma), JWT auth, full-text search, analytics, banner ads, and an embedded Vue admin panel.
+Nest.js API with PostgreSQL (Prisma), JWT auth, full-text search, analytics, banner ads, and an embedded Vue admin panel.
 
 ## Stack
 
-- Express + TypeScript
+- Nest.js + TypeScript
 - PostgreSQL + Prisma ORM
 - JWT access/refresh tokens + bcrypt
-- Zod validation, Helmet, CORS, rate limiting, XSS sanitization
+- Zod validation, Helmet, CORS, throttling, XSS sanitization
 - Vue 3 admin SPA (served at `/admin`)
 
-## Quick start
+## Docker (recommended)
+
+From the **repository root**:
+
+```bash
+cp .env.example .env
+docker compose up --build
+```
+
+This starts Postgres, this API, and the public frontend. See the root [README](../README.md).
+
+Postgres-only (for local npm dev):
+
+```bash
+docker compose up -d
+```
+
+## Local npm development
 
 ```bash
 cp .env.example .env
 # edit DATABASE_URL, JWT secrets, admin credentials
 
 npm install
-npx prisma migrate dev --name init
+npx prisma migrate dev
 # apply full-text search helpers (tsvector + trigger)
-psql "$DATABASE_URL" -f prisma/fts.sql
-# or: npx prisma db execute --file prisma/fts.sql
+npx prisma db execute --file prisma/fts.sql
 npm run db:seed
 
-npm run dev          # API on :4000
+npm run dev          # Nest API on :4000
 npm run admin:dev    # Admin Vite on :5174 (proxies /api)
-# or build admin into Express:
+# or build admin into the API image/static path:
 npm run admin:build
 ```
 
-Docker Postgres (optional):
+Production-style local build:
 
 ```bash
-docker compose up -d
+npm run build
+npm start
 ```
 
 ## Environment variables
@@ -47,7 +64,7 @@ docker compose up -d
 | `JWT_ACCESS_EXPIRES_IN` | e.g. `15m` |
 | `JWT_REFRESH_EXPIRES_IN` | e.g. `7d` |
 | `CORS_ORIGIN` | Comma-separated allowed origins |
-| `REDIS_URL` / `REDIS_ENABLED` | Optional caching |
+| `REDIS_URL` / `REDIS_ENABLED` | Optional (unused by default) |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Seed admin user |
 | `RATE_LIMIT_WINDOW_MS` / `RATE_LIMIT_MAX` | Rate limit config |
 
@@ -64,7 +81,7 @@ docker compose up -d
 
 ## Default admin credentials
 
-Created by `npm run db:seed` (override via `ADMIN_EMAIL` / `ADMIN_PASSWORD` in `.env`):
+Created by seed (override via `ADMIN_EMAIL` / `ADMIN_PASSWORD`):
 
 | Field | Value |
 |-------|-------|

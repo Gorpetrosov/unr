@@ -1,3 +1,7 @@
+# Postgres-only compose kept for local npm development.
+# Prefer the root docker-compose.yml for the full stack:
+#   cd .. && docker compose up --build
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -10,13 +14,6 @@ services:
       - '5432:5432'
     volumes:
       - blog_pg_data:/var/lib/postgresql/data
-
-  redis:
-    image: redis:7-alpine
-    restart: unless-stopped
-    ports:
-      - '6379:6379'
-    profiles: ['redis']
 
 volumes:
   blog_pg_data:
