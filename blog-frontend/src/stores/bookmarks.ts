@@ -19,7 +19,11 @@ export const useBookmarksStore = defineStore('bookmarks', () => {
   const count = computed(() => ids.value.length);
 
   function persist() {
-    localStorage.setItem(KEY, JSON.stringify(ids.value));
+    try {
+      localStorage.setItem(KEY, JSON.stringify(ids.value));
+    } catch {
+      /* private mode / blocked storage */
+    }
   }
 
   function has(id: string) {

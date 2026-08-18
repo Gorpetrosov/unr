@@ -68,6 +68,7 @@ const messages = {
       rates: 'Exchange rates',
       loading: 'Loading…',
       error: 'Unavailable',
+      yourLocation: 'Your location',
     },
     footer: {
       rights: 'All rights reserved.',
@@ -144,6 +145,7 @@ const messages = {
       rates: 'Курсы валют',
       loading: 'Загрузка…',
       error: 'Недоступно',
+      yourLocation: 'Ваше местоположение',
     },
     footer: {
       rights: 'Все права защищены.',

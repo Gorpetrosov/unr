@@ -116,7 +116,7 @@ textarea {
   transition: transform 0.2s ease, background 0.2s ease;
 }
 
-html[data-theme='dark'] .btn {
+html[data-theme='dark'] .btn:not(.ghost) {
   color: #0c1a24;
 }
 

@@ -36,7 +36,7 @@ API proxy: `/api` → `http://localhost:4000`
 | `VITE_SITE_NAME` | Brand name |
 | `VITE_SITE_URL` | Canonical site URL |
 | `VITE_DEFAULT_LOCALE` | `en` or `ru` |
-| `VITE_WEATHER_LAT` / `VITE_WEATHER_LON` / `VITE_WEATHER_LABEL` | Weather location |
+| `VITE_WEATHER_LAT` / `VITE_WEATHER_LON` / `VITE_WEATHER_LABEL` | Weather fallback (default New York) when browser geolocation is denied or unavailable |
 | `VITE_CURRENCY_BASE` / `VITE_CURRENCY_SYMBOLS` | FX widget |
 | `VITE_ADSENSE_CLIENT` / `VITE_ADSENSE_SLOT` | Optional AdSense |
 

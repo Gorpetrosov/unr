@@ -1,7 +1,7 @@
 <template>
   <section class="widget">
     <h3>{{ t('widgets.weather') }}</h3>
-    <p class="place">{{ label }}</p>
+    <p class="place">{{ placeLabel }}</p>
     <p v-if="loading" class="muted">{{ t('widgets.loading') }}</p>
     <p v-else-if="error" class="muted">{{ t('widgets.error') }}</p>
     <div v-else class="body">
@@ -17,15 +17,11 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { fetchWeather, weatherLabel } from '@/services/weather';
+import { fetchWeather, resolveWeatherPlace, weatherLabel } from '@/services/weather';
 import { useLocaleStore } from '@/stores/locale';
 
 const { t } = useI18n();
 const localeStore = useLocaleStore();
-
-const lat = Number(import.meta.env.VITE_WEATHER_LAT || 55.7558);
-const lon = Number(import.meta.env.VITE_WEATHER_LON || 37.6173);
-const label = import.meta.env.VITE_WEATHER_LABEL || 'Moscow';
 
 const loading = ref(true);
 const error = ref(false);
@@ -33,6 +29,7 @@ const temp = ref<number | null>(null);
 const humidity = ref<number | null>(null);
 const wind = ref<number | null>(null);
 const code = ref(0);
+const placeLabel = ref('');
 
 const condition = computed(() => weatherLabel(code.value, localeStore.locale));
 
@@ -40,7 +37,9 @@ async function load() {
   loading.value = true;
   error.value = false;
   try {
-    const data = await fetchWeather(lat, lon);
+    const place = await resolveWeatherPlace(localeStore.locale);
+    placeLabel.value = place.label || t('widgets.yourLocation');
+    const data = await fetchWeather(place.lat, place.lon);
     temp.value = data.temperature;
     humidity.value = data.humidity;
     wind.value = data.wind;

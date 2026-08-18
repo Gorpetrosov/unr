@@ -30,8 +30,13 @@
 
       <div class="actions">
         <ShareButtons :article-id="article.id" :title="title" :url="pageUrl" />
-        <button type="button" class="btn ghost bookmark" @click="bookmarks.toggle(article.id)">
-          {{ bookmarks.has(article.id) ? t('article.bookmarked') : t('article.bookmark') }}
+        <button
+          type="button"
+          class="btn ghost save-article"
+          :aria-pressed="bookmarked"
+          @click="bookmarks.toggle(article.id)"
+        >
+          {{ bookmarked ? t('article.bookmarked') : t('article.bookmark') }}
         </button>
       </div>
 
@@ -104,6 +109,9 @@ const title = computed(() => tLocal(article.value?.title, localeStore.locale));
 const content = computed(() => tLocal(article.value?.content, localeStore.locale));
 const excerpt = computed(() => tLocal(article.value?.excerpt || undefined, localeStore.locale));
 const pageUrl = computed(() => `${siteUrl()}/article/${route.params.slug}`);
+const bookmarked = computed(() =>
+  article.value ? bookmarks.ids.includes(article.value.id) : false
+);
 
 const categoryLinks = computed(() =>
   (article.value?.categories || []).map((item) => ({
@@ -246,7 +254,7 @@ h1 {
   gap: 0.75rem;
 }
 
-.bookmark {
+.save-article {
   padding: 0.45rem 0.9rem;
 }
 
