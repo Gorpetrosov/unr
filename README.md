@@ -26,6 +26,6 @@ Default admin: `admin@example.com` / `ChangeMe123!`
 
 ## Local development (without full Docker stack)
 
-1. Start Postgres: `cd blog-backend && docker compose up -d`
+1. Start Postgres: `cd blog-backend && docker compose up -d` (host port **5433**)
 2. Configure and run **blog-backend** (see its README)
 3. Configure and run **blog-frontend**

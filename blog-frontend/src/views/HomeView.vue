@@ -25,6 +25,34 @@
           <h2>{{ t('home.latest') }}</h2>
         </header>
 
+        <div class="filters" v-if="categories.length" :aria-label="t('home.filters')">
+          <button class="chip" :class="{ active: !category }" type="button" @click="setCategory('')">
+            {{ t('home.all') }}
+          </button>
+          <button
+            v-for="c in categories"
+            :key="c.id"
+            class="chip"
+            :class="{ active: category === slugOf(c) }"
+            type="button"
+            @click="setCategory(slugOf(c))"
+          >
+            {{ tLocal(c.name, localeStore.locale) }}
+          </button>
+        </div>
+
+        <template v-if="featured.length && !category && !tag">
+          <h3 class="subhead">{{ t('home.featured') }}</h3>
+          <div class="grid featured-grid">
+            <ArticleCard
+              v-for="(article, i) in featured"
+              :key="article.id"
+              :article="article"
+              :style="{ animationDelay: `${i * 0.06}s` }"
+            />
+          </div>
+        </template>
+
         <p v-if="loading" class="muted">{{ t('widgets.loading') }}</p>
         <p v-else-if="error" class="muted">{{ error }}</p>
         <p v-else-if="!articles.length" class="muted">{{ t('home.empty') }}</p>
@@ -55,30 +83,49 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import ArticleCard from '@/components/ArticleCard.vue';
 import WeatherWidget from '@/components/WeatherWidget.vue';
 import CurrencyWidget from '@/components/CurrencyWidget.vue';
 import AdBanner from '@/components/AdBanner.vue';
-import { listArticles, type Article } from '@/services/api';
-import { setSeo, siteName } from '@/utils/seo';
+import { listArticles, listCategories, type Article, type Taxonomy } from '@/services/api';
+import { setSeo, siteName, tLocal } from '@/utils/seo';
 import { useLocaleStore } from '@/stores/locale';
 
 const { t } = useI18n();
 const localeStore = useLocaleStore();
+const route = useRoute();
+const router = useRouter();
 
 const articles = ref<Article[]>([]);
+const featured = ref<Article[]>([]);
+const categories = ref<Taxonomy[]>([]);
 const page = ref(1);
 const pages = ref(1);
 const loading = ref(true);
 const error = ref('');
 
+const category = computed(() => String(route.query.category || ''));
+const tag = computed(() => String(route.query.tag || ''));
+
+function slugOf(item: Taxonomy) {
+  return tLocal(item.slug, localeStore.locale);
+}
+
+function setCategory(slug: string) {
+  router.replace({ query: slug ? { ...route.query, category: slug } : { ...route.query, category: undefined } });
+}
+
 async function load(p = 1) {
   loading.value = true;
   error.value = '';
   try {
-    const data = await listArticles(p, 9);
+    const data = await listArticles(p, 9, {
+      category: category.value || undefined,
+      tag: tag.value || undefined,
+    });
     articles.value = data.items;
     page.value = data.pagination.page;
     pages.value = data.pagination.pages || 1;
@@ -86,6 +133,19 @@ async function load(p = 1) {
     error.value = e instanceof Error ? e.message : 'Failed to load';
   } finally {
     loading.value = false;
+  }
+}
+
+async function loadFeatured() {
+  if (category.value || tag.value) {
+    featured.value = [];
+    return;
+  }
+  try {
+    const data = await listArticles(1, 3, { featured: true });
+    featured.value = data.items;
+  } catch {
+    featured.value = [];
   }
 }
 
@@ -97,12 +157,22 @@ function applySeo() {
   });
 }
 
-onMounted(() => {
+onMounted(async () => {
   applySeo();
-  load();
+  try {
+    const cats = await listCategories();
+    categories.value = cats.categories;
+  } catch {
+    categories.value = [];
+  }
+  await Promise.all([load(), loadFeatured()]);
 });
 
 watch(() => localeStore.locale, applySeo);
+watch([category, tag], () => {
+  load(1);
+  loadFeatured();
+});
 </script>
 
 <style scoped>
@@ -202,6 +272,44 @@ h1 {
   margin: 0 0 1.25rem;
   font-family: var(--font-display);
   font-size: 1.75rem;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: -0.4rem 0 1.4rem;
+}
+
+.chip {
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 0.4rem 0.85rem;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.chip.active {
+  background: var(--sea);
+  color: var(--paper);
+  border-color: var(--sea);
+}
+
+html[data-theme='dark'] .chip.active {
+  color: #0c1a24;
+}
+
+.subhead {
+  margin: 0 0 0.85rem;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+}
+
+.featured-grid {
+  margin-bottom: 1.75rem;
 }
 
 .grid {

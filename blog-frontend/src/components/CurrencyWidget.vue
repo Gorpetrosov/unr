@@ -43,7 +43,7 @@ onMounted(async () => {
 
 <style scoped>
 .widget {
-  background: rgba(255, 255, 255, 0.45);
+  background: var(--card);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   padding: 1.1rem 1.15rem;

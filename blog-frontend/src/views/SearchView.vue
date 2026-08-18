@@ -13,6 +13,12 @@
         :placeholder="t('search.placeholder')"
         autofocus
       />
+      <select v-model="category" class="input select" :aria-label="t('search.category')">
+        <option value="">{{ t('search.allCategories') }}</option>
+        <option v-for="c in categories" :key="c.id" :value="slugOf(c)">
+          {{ tLocal(c.name, localeStore.locale) }}
+        </option>
+      </select>
       <button class="btn" type="submit">{{ t('nav.search') }}</button>
     </form>
 
@@ -34,8 +40,8 @@ import { onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import ArticleCard from '@/components/ArticleCard.vue';
-import { searchArticles, type Article } from '@/services/api';
-import { setSeo } from '@/utils/seo';
+import { searchArticles, listCategories, type Article, type Taxonomy } from '@/services/api';
+import { setSeo, tLocal } from '@/utils/seo';
 import { useLocaleStore } from '@/stores/locale';
 
 const { t } = useI18n();
@@ -44,14 +50,25 @@ const router = useRouter();
 const localeStore = useLocaleStore();
 
 const query = ref(String(route.query.q || ''));
+const category = ref(String(route.query.category || ''));
+const categories = ref<Taxonomy[]>([]);
 const items = ref<Article[]>([]);
 const total = ref(0);
 const loading = ref(false);
 const searched = ref(false);
 
+function slugOf(item: Taxonomy) {
+  return tLocal(item.slug, localeStore.locale);
+}
+
 async function runSearch() {
   const q = query.value.trim();
-  router.replace({ query: q ? { q } : {} });
+  router.replace({
+    query: {
+      ...(q ? { q } : {}),
+      ...(category.value ? { category: category.value } : {}),
+    },
+  });
   if (!q) {
     items.value = [];
     total.value = 0;
@@ -62,7 +79,7 @@ async function runSearch() {
   loading.value = true;
   searched.value = true;
   try {
-    const data = await searchArticles(q);
+    const data = await searchArticles(q, 1, category.value || undefined);
     items.value = data.items;
     total.value = data.pagination.total;
   } catch {
@@ -73,12 +90,18 @@ async function runSearch() {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   setSeo({
     title: t('search.title'),
     description: t('search.hint'),
     locale: localeStore.locale,
   });
+  try {
+    const data = await listCategories();
+    categories.value = data.categories;
+  } catch {
+    categories.value = [];
+  }
   if (query.value) runSearch();
 });
 
@@ -119,10 +142,15 @@ watch(
 .input {
   flex: 1;
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.55);
+  background: var(--card);
+  color: var(--ink);
   border-radius: 999px;
   padding: 0.85rem 1.2rem;
   outline: none;
+}
+
+.select {
+  flex: 0 0 12rem;
 }
 
 .input:focus {

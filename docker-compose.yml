@@ -7,7 +7,9 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-blog_db}
     ports:
-      - '${POSTGRES_PORT:-5432}:5432'
+      # Do not bind host 5432 — it is commonly already in use.
+      # The API still talks to Postgres on the internal Docker network at postgres:5432.
+      - '${POSTGRES_PORT:-5433}:5432'
     volumes:
       - blog_pg_data:/var/lib/postgresql/data
     healthcheck:

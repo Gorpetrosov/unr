@@ -153,9 +153,14 @@ textarea {
   color: var(--success);
 }
 
-.badge.draft {
-  background: rgba(230, 192, 123, 0.15);
-  color: var(--warning);
+.badge.scheduled {
+  background: rgba(61, 156, 240, 0.15);
+  color: var(--accent);
+}
+
+.badge.featured {
+  background: rgba(62, 207, 142, 0.12);
+  color: var(--success);
 }
 
 .error {

@@ -15,11 +15,14 @@ import SiteHeader from './components/SiteHeader.vue';
 import SiteFooter from './components/SiteFooter.vue';
 import AdBanner from './components/AdBanner.vue';
 import { useLocaleStore } from './stores/locale';
+import { useThemeStore } from './stores/theme';
 import { loadAdSense } from './utils/adsense';
 
 const localeStore = useLocaleStore();
+const themeStore = useThemeStore();
 onMounted(() => {
   document.documentElement.lang = localeStore.locale;
+  themeStore.setTheme(themeStore.theme);
   loadAdSense();
 });
 </script>

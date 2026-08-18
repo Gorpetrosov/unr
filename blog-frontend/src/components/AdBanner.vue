@@ -65,7 +65,7 @@ async function onClick() {
 .ad {
   overflow: hidden;
   border-radius: 12px;
-  background: rgba(12, 26, 36, 0.04);
+  background: var(--card);
 }
 
 .ad img {

@@ -9,24 +9,35 @@
       <nav class="nav">
         <RouterLink to="/">{{ t('nav.home') }}</RouterLink>
         <RouterLink to="/search">{{ t('nav.search') }}</RouterLink>
+        <RouterLink to="/bookmarks">{{ t('nav.bookmarks') }}</RouterLink>
         <RouterLink to="/about">{{ t('nav.about') }}</RouterLink>
       </nav>
 
-      <div class="lang">
+      <div class="tools">
         <button
           type="button"
-          :class="{ active: localeStore.locale === 'en' }"
-          @click="switchLocale('en')"
+          class="icon-btn"
+          :title="themeStore.theme === 'dark' ? t('theme.light') : t('theme.dark')"
+          @click="themeStore.toggle()"
         >
-          EN
+          {{ themeStore.theme === 'dark' ? '☀' : '☾' }}
         </button>
-        <button
-          type="button"
-          :class="{ active: localeStore.locale === 'ru' }"
-          @click="switchLocale('ru')"
-        >
-          RU
-        </button>
+        <div class="lang">
+          <button
+            type="button"
+            :class="{ active: localeStore.locale === 'en' }"
+            @click="switchLocale('en')"
+          >
+            EN
+          </button>
+          <button
+            type="button"
+            :class="{ active: localeStore.locale === 'ru' }"
+            @click="switchLocale('ru')"
+          >
+            RU
+          </button>
+        </div>
       </div>
     </div>
   </header>
@@ -36,10 +47,12 @@
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useLocaleStore } from '@/stores/locale';
+import { useThemeStore } from '@/stores/theme';
 import type { AppLocale } from '@/i18n';
 
 const { t, locale } = useI18n();
 const localeStore = useLocaleStore();
+const themeStore = useThemeStore();
 const pulse = ref(false);
 
 function switchLocale(next: AppLocale) {
@@ -54,7 +67,7 @@ function switchLocale(next: AppLocale) {
   top: 0;
   z-index: 20;
   backdrop-filter: blur(14px);
-  background: rgba(243, 239, 230, 0.82);
+  background: var(--header);
   border-bottom: 1px solid var(--line);
 }
 
@@ -83,6 +96,10 @@ function switchLocale(next: AppLocale) {
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 0.85rem;
+}
+
+html[data-theme='dark'] .mark {
+  color: #0c1a24;
 }
 
 .mark.pulse {
@@ -141,6 +158,22 @@ function switchLocale(next: AppLocale) {
   transform: scaleX(1);
 }
 
+.tools {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.icon-btn {
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  cursor: pointer;
+}
+
 .lang {
   display: inline-flex;
   border: 1px solid var(--line);
@@ -160,7 +193,11 @@ function switchLocale(next: AppLocale) {
 
 .lang button.active {
   background: var(--sea);
-  color: #f5f1e8;
+  color: var(--paper);
+}
+
+html[data-theme='dark'] .lang button.active {
+  color: #0c1a24;
 }
 
 @media (max-width: 720px) {
@@ -175,6 +212,9 @@ function switchLocale(next: AppLocale) {
     order: 3;
     width: 100%;
     justify-content: space-between;
+  }
+  .tools {
+    margin-left: auto;
   }
 }
 </style>

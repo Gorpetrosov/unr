@@ -7,13 +7,16 @@ import { join } from 'path';
 import { AdminModule } from './admin/admin.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { ArticlesModule } from './articles/articles.module';
+import { AuthorsModule } from './authors/authors.module';
 import { AuthModule } from './auth/auth.module';
 import { BannersModule } from './banners/banners.module';
 import { CategoriesModule } from './categories/categories.module';
 import { AllExceptionsFilter } from './common/http-exception.filter';
 import { validateEnv } from './config/env';
+import { EngagementModule } from './engagement/engagement.module';
 import { HealthModule } from './health/health.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { TagsModule } from './tags/tags.module';
 
 @Module({
   imports: [
@@ -41,7 +44,10 @@ import { PrismaModule } from './prisma/prisma.module';
     ArticlesModule,
     BannersModule,
     CategoriesModule,
+    TagsModule,
     AnalyticsModule,
+    EngagementModule,
+    AuthorsModule,
     AdminModule,
   ],
   providers: [

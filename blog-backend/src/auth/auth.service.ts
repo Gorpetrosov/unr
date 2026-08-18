@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Prisma } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { AppError } from '../common/app-error';
 import { AuthPayload } from '../common/current-user.decorator';
+import { LocalizedString, uniqueSlug } from '../common/helpers';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -86,12 +88,65 @@ export class AuthService {
     return {
       accessToken,
       refreshToken,
-      user: {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-      },
+      user: this.toAdminUser(user),
     };
+  }
+
+  private toAdminUser(user: {
+    id: string;
+    email: string;
+    role: AuthPayload['role'];
+    displayName: string;
+    slug: string;
+    bio: unknown;
+    avatarUrl: string | null;
+  }) {
+    return {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      displayName: user.displayName,
+      slug: user.slug,
+      bio: (user.bio as LocalizedString | null) ?? null,
+      avatarUrl: user.avatarUrl,
+    };
+  }
+
+  async getMe(userId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new AppError('User not found', 404);
+    return { user: this.toAdminUser(user) };
+  }
+
+  async updateProfile(
+    userId: string,
+    input: { displayName?: string; bio?: LocalizedString | null; avatarUrl?: string | null }
+  ) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new AppError('User not found', 404);
+
+    let slug = user.slug;
+    if (input.displayName && input.displayName !== user.displayName) {
+      slug = await uniqueSlug(input.displayName, async (candidate) => {
+        const existing = await this.prisma.user.findFirst({
+          where: { slug: candidate, NOT: { id: userId } },
+          select: { id: true },
+        });
+        return Boolean(existing);
+      });
+    }
+
+    const updated = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        displayName: input.displayName ?? user.displayName,
+        slug,
+        bio: input.bio === undefined ? undefined : input.bio === null ? Prisma.JsonNull : input.bio,
+        avatarUrl: input.avatarUrl === undefined ? undefined : input.avatarUrl,
+      },
+    });
+
+    return { user: this.toAdminUser(updated) };
   }
 
   async refresh(refreshToken: string) {

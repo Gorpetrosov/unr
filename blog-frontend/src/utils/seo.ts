@@ -50,6 +50,21 @@ export function setSeo(opts: {
   canonical.href = url;
 }
 
+export function setJsonLd(data: Record<string, unknown> | null) {
+  let el = document.querySelector('script[data-seo="jsonld"]') as HTMLScriptElement | null;
+  if (!data) {
+    el?.remove();
+    return;
+  }
+  if (!el) {
+    el = document.createElement('script');
+    el.type = 'application/ld+json';
+    el.dataset.seo = 'jsonld';
+    document.head.appendChild(el);
+  }
+  el.textContent = JSON.stringify(data);
+}
+
 function upsertMeta(attr: 'name' | 'property', key: string, content: string) {
   let el = document.querySelector(`meta[${attr}="${key}"]`) as HTMLMetaElement | null;
   if (!el) {

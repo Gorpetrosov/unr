@@ -34,6 +34,16 @@ const router = createRouter({
       name: 'banners',
       component: () => import('../views/BannersView.vue'),
     },
+    {
+      path: '/taxonomy',
+      name: 'taxonomy',
+      component: () => import('../views/TaxonomyView.vue'),
+    },
+    {
+      path: '/profile',
+      name: 'profile',
+      component: () => import('../views/ProfileView.vue'),
+    },
   ],
 });
 

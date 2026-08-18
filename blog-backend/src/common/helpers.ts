@@ -31,6 +31,18 @@ export function sanitizeHtml(html: string): string {
   return xss(html, xssOptions);
 }
 
+export function sanitizePlainText(text: string): string {
+  return xss(text, { whiteList: {}, stripIgnoreTag: true }).replace(/\s+/g, ' ').trim();
+}
+
+export const publicAuthorSelect = {
+  id: true,
+  displayName: true,
+  slug: true,
+  bio: true,
+  avatarUrl: true,
+} as const;
+
 export function sanitizeLocalizedHtml(value: LocalizedString): LocalizedString {
   return {
     en: sanitizeHtml(value.en || ''),
@@ -47,6 +59,42 @@ export function localizedSlugs(title: LocalizedString): LocalizedString {
     en: makeSlug(title.en),
     ru: makeSlug(title.ru),
   };
+}
+
+export async function uniqueLocalizedSlugs(
+  slugs: LocalizedString,
+  exists: (locale: 'en' | 'ru', candidate: string) => Promise<boolean>
+): Promise<LocalizedString> {
+  const result = { ...slugs };
+
+  for (const locale of ['en', 'ru'] as const) {
+    let candidate = result[locale] || 'item';
+    let suffix = 2;
+    const base = candidate;
+
+    while (await exists(locale, candidate)) {
+      candidate = `${base}-${suffix}`;
+      suffix += 1;
+    }
+
+    result[locale] = candidate;
+  }
+
+  return result;
+}
+
+export async function uniqueSlug(
+  base: string,
+  exists: (candidate: string) => Promise<boolean>
+): Promise<string> {
+  let candidate = makeSlug(base) || 'author';
+  const root = candidate;
+  let suffix = 2;
+  while (await exists(candidate)) {
+    candidate = `${root}-${suffix}`;
+    suffix += 1;
+  }
+  return candidate;
 }
 
 export function getClientIp(req: {

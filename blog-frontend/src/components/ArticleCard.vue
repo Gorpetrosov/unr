@@ -6,6 +6,7 @@
     <div class="body">
       <p class="meta muted" v-if="article.publishedAt">
         {{ formatDate(article.publishedAt) }}
+        <span v-if="categoryName"> · {{ categoryName }}</span>
       </p>
       <h2>
         <RouterLink :to="`/article/${slug}`">{{ title }}</RouterLink>
@@ -30,6 +31,10 @@ const localeStore = useLocaleStore();
 const title = computed(() => tLocal(props.article.title, localeStore.locale));
 const excerpt = computed(() => tLocal(props.article.excerpt || undefined, localeStore.locale));
 const slug = computed(() => tLocal(props.article.slug, localeStore.locale));
+const categoryName = computed(() => {
+  const first = props.article.categories?.[0]?.category;
+  return first ? tLocal(first.name, localeStore.locale) : '';
+});
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString(localeStore.locale === 'ru' ? 'ru-RU' : 'en-US', {
@@ -46,7 +51,7 @@ function formatDate(d: string) {
   flex-direction: column;
   border-radius: var(--radius);
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.42);
+  background: var(--card);
   border: 1px solid var(--line);
   transition: transform 0.25s ease, box-shadow 0.25s ease;
   animation: rise 0.55s ease both;

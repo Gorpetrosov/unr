@@ -14,6 +14,16 @@ const router = createRouter({
       component: () => import('../views/SearchView.vue'),
     },
     {
+      path: '/bookmarks',
+      name: 'bookmarks',
+      component: () => import('../views/BookmarksView.vue'),
+    },
+    {
+      path: '/author/:slug',
+      name: 'author',
+      component: () => import('../views/AuthorView.vue'),
+    },
+    {
       path: '/about',
       name: 'about',
       component: () => import('../views/AboutView.vue'),

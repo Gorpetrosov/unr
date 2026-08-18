@@ -21,7 +21,7 @@ const year = new Date().getFullYear();
 .footer {
   margin-top: 4rem;
   border-top: 1px solid var(--line);
-  background: rgba(12, 26, 36, 0.04);
+  background: var(--paper-deep);
 }
 
 .inner {

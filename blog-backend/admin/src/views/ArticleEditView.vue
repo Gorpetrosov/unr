@@ -55,7 +55,21 @@
           <select v-model="form.status" class="select">
             <option value="draft">Draft</option>
             <option value="published">Published</option>
+            <option value="scheduled">Scheduled</option>
           </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field" v-if="form.status === 'scheduled'">
+          <label class="label">Publish at</label>
+          <input v-model="form.scheduledAt" class="input" type="datetime-local" required />
+        </div>
+        <div class="field">
+          <label class="check featured-check">
+            <input v-model="form.featured" type="checkbox" />
+            Featured on homepage
+          </label>
         </div>
       </div>
 
@@ -66,6 +80,18 @@
             <input v-model="form.categoryIds" type="checkbox" :value="c.id" />
             {{ c.name?.en }}
           </label>
+          <span v-if="!categories.length" class="hint">No categories yet.</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="label">Tags</label>
+        <div class="checks">
+          <label v-for="tag in tags" :key="tag.id" class="check">
+            <input v-model="form.tagIds" type="checkbox" :value="tag.id" />
+            {{ tag.name?.en }}
+          </label>
+          <span v-if="!tags.length" class="hint">No tags yet.</span>
         </div>
       </div>
 
@@ -93,16 +119,32 @@ const form = reactive({
   excerpt: { en: '', ru: '' },
   content: { en: '', ru: '' },
   featuredImage: '',
-  status: 'draft' as 'draft' | 'published',
+  featured: false,
+  status: 'draft' as 'draft' | 'published' | 'scheduled',
+  scheduledAt: '',
   categoryIds: [] as string[],
+  tagIds: [] as string[],
 });
 
 const categories = ref<Array<{ id: string; name: { en: string; ru: string } }>>([]);
+const tags = ref<Array<{ id: string; name: { en: string; ru: string } }>>([]);
+
+function toLocalInput(iso?: string | null) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
 
 onMounted(async () => {
   try {
-    const cats = await api<{ categories: typeof categories.value }>('/api/admin/categories');
+    const [cats, tagData] = await Promise.all([
+      api<{ categories: typeof categories.value }>('/api/admin/categories'),
+      api<{ tags: typeof tags.value }>('/api/admin/tags'),
+    ]);
     categories.value = cats.categories;
+    tags.value = tagData.tags;
 
     if (!isNew.value) {
       const data = await api<{
@@ -111,8 +153,11 @@ onMounted(async () => {
           excerpt?: { en: string; ru: string } | null;
           content: { en: string; ru: string };
           featuredImage?: string | null;
-          status: 'draft' | 'published';
+          featured?: boolean;
+          status: 'draft' | 'published' | 'scheduled';
+          scheduledAt?: string | null;
           categories: Array<{ categoryId: string }>;
+          tags: Array<{ tagId: string }>;
         };
       }>(`/api/admin/articles/${route.params.id}`);
 
@@ -120,8 +165,11 @@ onMounted(async () => {
       form.excerpt = data.article.excerpt || { en: '', ru: '' };
       form.content = data.article.content;
       form.featuredImage = data.article.featuredImage || '';
+      form.featured = Boolean(data.article.featured);
       form.status = data.article.status;
+      form.scheduledAt = toLocalInput(data.article.scheduledAt);
       form.categoryIds = data.article.categories.map((c) => c.categoryId);
+      form.tagIds = (data.article.tags || []).map((t) => t.tagId);
     }
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'Failed to load';
@@ -138,8 +186,11 @@ async function save() {
       excerpt: form.excerpt,
       content: form.content,
       featuredImage: form.featuredImage || null,
+      featured: form.featured,
       status: form.status,
+      scheduledAt: form.status === 'scheduled' ? new Date(form.scheduledAt).toISOString() : null,
       categoryIds: form.categoryIds,
+      tagIds: form.tagIds,
     };
 
     if (isNew.value) {
@@ -196,12 +247,24 @@ async function save() {
   gap: 0.35rem;
   color: var(--text-muted);
 }
+.featured-check {
+  margin-top: 1.7rem;
+  color: var(--text);
+  font-weight: 500;
+}
+.hint {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
 .ok {
   color: var(--success);
 }
 @media (max-width: 800px) {
   .row {
     grid-template-columns: 1fr;
+  }
+  .featured-check {
+    margin-top: 0;
   }
 }
 </style>

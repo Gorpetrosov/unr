@@ -86,7 +86,7 @@ async function share(platform: string) {
   height: 2.2rem;
   border-radius: 999px;
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--card);
   cursor: pointer;
   font-weight: 700;
   transition: transform 0.15s ease, background 0.15s ease;

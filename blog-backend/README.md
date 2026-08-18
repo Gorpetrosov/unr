@@ -21,11 +21,13 @@ docker compose up --build
 
 This starts Postgres, this API, and the public frontend. See the root [README](../README.md).
 
-Postgres-only (for local npm dev):
+Postgres-only (for local npm dev). Postgres is published on host port **5433** so it does not clash with a local install on 5432:
 
 ```bash
 docker compose up -d
 ```
+
+`DATABASE_URL` in `.env` should use `localhost:5433`.
 
 ## Local npm development
 

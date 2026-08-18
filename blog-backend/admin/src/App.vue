@@ -5,7 +5,9 @@
       <nav>
         <RouterLink to="/">Dashboard</RouterLink>
         <RouterLink to="/articles">Articles</RouterLink>
+        <RouterLink to="/taxonomy">Categories & tags</RouterLink>
         <RouterLink to="/banners">Banners</RouterLink>
+        <RouterLink to="/profile">Profile</RouterLink>
       </nav>
       <button class="btn secondary logout" @click="logout">Log out</button>
     </aside>

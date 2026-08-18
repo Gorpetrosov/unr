@@ -10,13 +10,34 @@ async function main() {
 
   const admin = await prisma.user.upsert({
     where: { email },
-    update: { passwordHash, role: Role.admin },
+    update: {
+      passwordHash,
+      role: Role.admin,
+      displayName: 'Horizon Editor',
+      bio: {
+        en: 'Editor of Horizon Notes. Essays, notes, and bilingual dispatches.',
+        ru: 'Редактор Horizon Notes. Эссе, заметки и двуязычные репортажи.',
+      },
+    },
     create: {
       email,
       passwordHash,
       role: Role.admin,
+      displayName: 'Horizon Editor',
+      slug: 'horizon-editor',
+      bio: {
+        en: 'Editor of Horizon Notes. Essays, notes, and bilingual dispatches.',
+        ru: 'Редактор Horizon Notes. Эссе, заметки и двуязычные репортажи.',
+      },
     },
   });
+
+  if (!admin.slug) {
+    await prisma.user.update({
+      where: { id: admin.id },
+      data: { slug: 'horizon-editor', displayName: 'Horizon Editor' },
+    });
+  }
 
   const categories = await prisma.category.findMany();
   let tech = categories.find((c) => (c.name as { en?: string }).en === 'Technology');
@@ -24,12 +45,29 @@ async function main() {
 
   if (!tech) {
     tech = await prisma.category.create({
-      data: { name: { en: 'Technology', ru: 'Технологии' } },
+      data: {
+        name: { en: 'Technology', ru: 'Технологии' },
+        slug: { en: 'technology', ru: 'tehnologii' },
+      },
     });
   }
   if (!life) {
     life = await prisma.category.create({
-      data: { name: { en: 'Lifestyle', ru: 'Образ жизни' } },
+      data: {
+        name: { en: 'Lifestyle', ru: 'Образ жизни' },
+        slug: { en: 'lifestyle', ru: 'obraz-zhizni' },
+      },
+    });
+  }
+
+  const tags = await prisma.tag.findMany();
+  let intro = tags.find((t) => (t.name as { en?: string }).en === 'Introduction');
+  if (!intro) {
+    intro = await prisma.tag.create({
+      data: {
+        name: { en: 'Introduction', ru: 'Введение' },
+        slug: { en: 'introduction', ru: 'vvedenie' },
+      },
     });
   }
 
@@ -59,12 +97,21 @@ async function main() {
           ru: '<p>Это ваша первая опубликованная статья. Отредактируйте её в админ-панели или создайте новые посты на английском и русском.</p>',
         },
         status: 'published',
+        featured: true,
         publishedAt: new Date(),
         authorId: admin.id,
         categories: {
           create: [{ categoryId: tech.id }],
         },
+        tags: {
+          create: [{ tagId: intro.id }],
+        },
       },
+    });
+  } else {
+    await prisma.article.update({
+      where: { id: existing[0].id },
+      data: { featured: true },
     });
   }
 

@@ -15,6 +15,7 @@ enum Role {
 enum ArticleStatus {
   draft
   published
+  scheduled
 }
 
 enum AnalyticsEventType {
@@ -34,6 +35,10 @@ model User {
   email        String    @unique
   passwordHash String    @map("password_hash")
   role         Role      @default(editor)
+  displayName  String    @default("Editor") @map("display_name")
+  slug         String    @unique
+  bio          Json?
+  avatarUrl    String?   @map("avatar_url")
   createdAt    DateTime  @default(now()) @map("created_at")
   articles     Article[]
 
@@ -47,27 +52,35 @@ model Article {
   content       Json
   excerpt       Json?
   featuredImage String?            @map("featured_image")
+  featured      Boolean            @default(false)
   status        ArticleStatus      @default(draft)
   views         Int                @default(0)
   shares        Int                @default(0)
   authorId      String             @map("author_id")
   publishedAt   DateTime?          @map("published_at")
+  scheduledAt   DateTime?          @map("scheduled_at")
   createdAt     DateTime           @default(now()) @map("created_at")
   updatedAt     DateTime           @updatedAt @map("updated_at")
   deletedAt     DateTime?          @map("deleted_at")
 
   author     User              @relation(fields: [authorId], references: [id])
   categories ArticleCategory[]
+  tags       ArticleTag[]
   analytics  Analytics[]
+  comments   Comment[]
+  reactions  Reaction[]
 
   @@index([status, publishedAt])
   @@index([authorId])
+  @@index([featured, status])
+  @@index([scheduledAt])
   @@map("articles")
 }
 
 model Category {
   id       String            @id @default(cuid())
   name     Json
+  slug     Json
   articles ArticleCategory[]
 
   @@map("categories")
@@ -84,16 +97,64 @@ model ArticleCategory {
   @@map("article_categories")
 }
 
+model Tag {
+  id       String       @id @default(cuid())
+  name     Json
+  slug     Json
+  articles ArticleTag[]
+
+  @@map("tags")
+}
+
+model ArticleTag {
+  articleId String @map("article_id")
+  tagId     String @map("tag_id")
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  tag     Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([articleId, tagId])
+  @@map("article_tags")
+}
+
+model Comment {
+  id         String    @id @default(cuid())
+  articleId  String    @map("article_id")
+  authorName String    @map("author_name")
+  body       String
+  createdAt  DateTime  @default(now()) @map("created_at")
+  deletedAt  DateTime? @map("deleted_at")
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@index([articleId, createdAt])
+  @@map("comments")
+}
+
+model Reaction {
+  id        String   @id @default(cuid())
+  articleId String   @map("article_id")
+  type      String
+  visitorId String   @map("visitor_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([articleId, visitorId, type])
+  @@index([articleId, type])
+  @@map("reactions")
+}
+
 model Analytics {
-  id        String              @id @default(cuid())
-  articleId String?             @map("article_id")
-  eventType AnalyticsEventType  @map("event_type")
+  id        String             @id @default(cuid())
+  articleId String?            @map("article_id")
+  eventType AnalyticsEventType @map("event_type")
   platform  String?
-  ipAddress String?             @map("ip_address")
-  userAgent String?             @map("user_agent")
+  ipAddress String?            @map("ip_address")
+  userAgent String?            @map("user_agent")
   referrer  String?
   url       String?
-  createdAt DateTime            @default(now()) @map("created_at")
+  createdAt DateTime           @default(now()) @map("created_at")
 
   article Article? @relation(fields: [articleId], references: [id], onDelete: SetNull)
 
