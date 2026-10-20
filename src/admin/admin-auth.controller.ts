@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Post, Put, UseGuards, UsePipes } from '@nestjs/common';
-import { Role } from '@prisma/client';
+import { Role } from '../generated/prisma/client';
 import { AuthService } from '../auth/auth.service';
 import { AuthPayload, CurrentUser } from '../common/current-user.decorator';
 import { LocalizedString } from '../common/helpers';

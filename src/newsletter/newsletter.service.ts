@@ -1,7 +1,7 @@
 import { randomBytes } from 'crypto';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Prisma, SubscriberStatus } from '@prisma/client';
+import { Prisma, SubscriberStatus } from '../generated/prisma/client';
 import { AppError } from '../common/app-error';
 import { MailQueueService } from '../mail/mail-queue.service';
 import { PrismaService } from '../prisma/prisma.service';

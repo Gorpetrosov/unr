@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { BannerPosition, Prisma } from '@prisma/client';
+import { BannerPosition, Prisma } from '../generated/prisma/client';
 import { AppError } from '../common/app-error';
 import { PrismaService } from '../prisma/prisma.service';
 

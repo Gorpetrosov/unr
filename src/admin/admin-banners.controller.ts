@@ -10,7 +10,7 @@ import {
   Put,
   UseGuards,
 } from '@nestjs/common';
-import { Role } from '@prisma/client';
+import { Role } from '../generated/prisma/client';
 import { BannersService } from '../banners/banners.service';
 import { JwtAuthGuard } from '../common/jwt-auth.guard';
 import { Roles } from '../common/roles.decorator';

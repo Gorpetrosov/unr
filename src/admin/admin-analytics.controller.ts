@@ -1,5 +1,5 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
-import { Role } from '@prisma/client';
+import { Role } from '../generated/prisma/client';
 import { AnalyticsService } from '../analytics/analytics.service';
 import { JwtAuthGuard } from '../common/jwt-auth.guard';
 import { Roles } from '../common/roles.decorator';

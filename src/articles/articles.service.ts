@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { ArticleStatus, Prisma } from '@prisma/client';
+import { ArticleStatus, Prisma } from '../generated/prisma/client';
 import { AppError } from '../common/app-error';
 import {
   LocalizedString,
