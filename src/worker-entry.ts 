@@ -1,0 +1,33 @@
+import { DurableObject } from "cloudflare:workers";
+
+export class NestApp extends DurableObject {
+  defaultPort = 4000;
+
+  async fetch(request: Request): Promise<Response> {
+    if (!this.ctx.container.running) {
+      this.ctx.container.start({
+        image: this.ctx.container.images.base,
+        enableInternet: true,
+        env: {
+          DATABASE_URL: this.env.DATABASE_URL,
+          JWT_SECRET: this.env.JWT_SECRET,
+          JWT_REFRESH_SECRET: this.env.JWT_REFRESH_SECRET,
+          ADMIN_PASSWORD: this.env.ADMIN_PASSWORD,
+          NODE_ENV: "production",
+        },
+      });
+    }
+    return this.ctx.container.fetch(request);
+  }
+}
+
+export default {
+  async fetch(
+    request: Request,
+    env: { NEST_APP: DurableObjectNamespace }
+  ): Promise<Response> {
+    const id = env.NEST_APP.idFromName("primary");
+    const stub = env.NEST_APP.get(id);
+    return stub.fetch(request);
+  },
+};

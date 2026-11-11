@@ -1,0 +1,30 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "gp-media-unr",
+  "main": "worker-entry.ts",
+  "compatibility_date": "2026-10-21",
+  "containers": [
+    {
+      "class_name": "NestApp",
+      "image": "./Dockerfile",
+      "max_instances": 5
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "NEST_APP",
+        "class_name": "NestApp"
+      }
+    ]
+  },
+  "exports": {
+    "NestApp": {
+      "type": "durable-object",
+      "storage": "sqlite"
+    }
+  },
+  "observability": {
+    "enabled": true
+  }
+}
